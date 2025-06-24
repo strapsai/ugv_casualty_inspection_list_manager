@@ -31,6 +31,11 @@ private:
   // Services.
   // ==================================================
   rclcpp::Service<triage_task_allocation_interface::srv::GiveAllocation>::SharedPtr srv_give_allocation;
+  
+  // ==================================================
+  // Timers.
+  // ==================================================
+  rclcpp::TimerBase::SharedPtr timer_working_on_allocation;
 
   // ==================================================
   // Callbacks.
@@ -38,8 +43,9 @@ private:
   void callback_allocations(triage_task_allocation_interface::msg::GlobalTaskAllocation msg);
   void callback_give_allocation(
       const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Request> req,
-      const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Response> res
+      std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Response> res
       );
+  void timer_callback_working_on();
 
   // ==================================================
   // Other stuff.
@@ -50,5 +56,8 @@ private:
     
    bool initialized_ = false;
    std::string _robot_name_;
+
+   bool is_task_assigned = false;
+   unsigned int assigned_task;
 };
 #endif // __UGV_CASUALTY_INSPECTION_LIST_ALLOCATION_MANAGER__

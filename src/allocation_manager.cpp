@@ -39,8 +39,16 @@ void AllocationManager::initialize(){
   // Service clients.
   // ==================================================
   srv_give_allocation =
-    create_service<triage_task_allocation_interface::srv::GiveAllocation>("give_allocation", &AllocationManager::callback_give_allocation);
+    create_service<triage_task_allocation_interface::srv::GiveAllocation>("/give_allocation",
+        std::bind(&AllocationManager::callback_give_allocation, this,
+          std::placeholders::_1, //request
+          std::placeholders::_2 //response
+          ));
 
+
+  timer_working_on_allocation = create_wall_timer(
+        std::chrono::milliseconds(100), //TODO: decide or make configurable
+        std::bind(&AllocationManager::timer_callback_working_on, this));
 
   initialized_ = true;
   RCLCPP_INFO(this->get_logger(), "Casualty Inspection List Allocator Node Initialized");
@@ -76,9 +84,25 @@ int AllocationManager::got_allocation_for_casualty(unsigned int id){
 }
 
   void AllocationManager::callback_give_allocation(
-      const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Request> req,
-      const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Response> res
+      [[ maybe_unused ]] const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Request> req,
+      std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Response> res
       ){
 
-    res->task = allocations.front();
+    if (! allocations.empty()){
+      res->task = allocations.front();
+      assigned_task = 0;
+      is_task_assigned = true;
+    }
+    else{
+      auto emptyres =  triage_task_allocation_interface::msg::TriageTaskItem();
+      emptyres.task_id = 666; //signifies failure
+      res->task = emptyres;
+    }
+    return;
   }
+
+void AllocationManager::timer_callback_working_on() {
+  if ((!allocations.empty()) && is_task_assigned){
+    pub_working_on_allocation->publish(allocations.at(assigned_task).casualty_description);
+  }
+}

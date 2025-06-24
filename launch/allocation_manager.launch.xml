@@ -2,7 +2,8 @@
   <arg name="robot_name"/>
   <arg name="namespace"/>
   <arg name="got_new_allocation_topic" default="got_new_allocation"/>
-  <arg name="global_task_allocation_topic" default="global_task_allocation"/>
+  <arg name="global_task_allocation_topic" default="global_task_allocation_topic"/>
+  <arg name="give_allocation_topic" default="give_allocation_topic"/>
   <arg name="working_on_allocation_topic" default="working_on_allocation"/>
 
   <group>
@@ -10,9 +11,10 @@
 
   <node pkg="ugv_casualty_inspection_list_manager" exec="ugv_casualty_inspection_list_manager_node" name="ugv_casualty_inspection_list_manager">
     <param name="robot_name" value="$(var robot_name)"/>
-    <remap from="/got_new_allocation" to="$(var namespace)/$(var got_new_allocation_topic)"/>
-    <remap from="/working_on_allocation" to="$(var namespace)/$(var working_on_allocation_topic)"/>
-    <remap from="/global_task_allocation" to="$(var namespace)/$(var global_task_allocation_topic)"/>
+    <remap from="/got_new_allocation" to="$(var got_new_allocation_topic)"/>
+    <remap from="/working_on_allocation" to="$(var working_on_allocation_topic)"/>
+    <remap from="/global_task_allocation" to="$(var global_task_allocation_topic)"/>
+    <remap from="/give_allocation" to="$(var give_allocation_topic)"/>
   </node>
   </group>
 </launch>
