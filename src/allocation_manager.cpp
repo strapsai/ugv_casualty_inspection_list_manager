@@ -54,7 +54,7 @@ void AllocationManager::initialize(){
   RCLCPP_INFO(this->get_logger(), "Casualty Inspection List Allocator Node Initialized");
 }
 
-void AllocationManager::callback_allocations(triage_task_allocation_interface::msg::GlobalTaskAllocation msg){
+void AllocationManager::callback_allocations(const triage_task_allocation_interface::msg::GlobalTaskAllocation msg){
   for (auto &allocation : msg.task_allocation){
     if (allocation.robot_name == _robot_name_){
       auto index = got_allocation_for_casualty(allocation.casualty_description.id);
@@ -64,9 +64,9 @@ void AllocationManager::callback_allocations(triage_task_allocation_interface::m
       else  {
         allocations.push_back(allocation);
       }
-      std_msgs::msg::Bool msg;
-      msg.data = true;
-      pub_got_new_allocation->publish(msg);
+      std_msgs::msg::Bool msg_out;
+      msg_out.data = true;
+      pub_got_new_allocation->publish(msg_out);
     }
   }
 }
