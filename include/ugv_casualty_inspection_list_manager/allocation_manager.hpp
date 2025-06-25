@@ -40,7 +40,7 @@ private:
   // ==================================================
   // Callbacks.
   // ==================================================
-  void callback_allocations(triage_task_allocation_interface::msg::GlobalTaskAllocation msg);
+  void callback_allocations(const triage_task_allocation_interface::msg::GlobalTaskAllocation & msg);
   void callback_give_allocation(
       const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Request> req,
       std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Response> res
