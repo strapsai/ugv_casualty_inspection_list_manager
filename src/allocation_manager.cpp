@@ -142,16 +142,25 @@ int AllocationManager::is_task_finished(const triage_task_allocation_interface::
 
       res->message = ss.str();
       finished_allocations.push_back(assigned_task.value());
+      bool found_in_pending = false;
       for (auto it = pending_allocations.begin(); it != pending_allocations.end();){
         if (
             ((*it).casualty_description.id == assigned_task.value().casualty_description.id)
             &&
             ((*it).casualty_description.round == assigned_task.value().casualty_description.round)
-           )
+           ){
           it == pending_allocations.erase(it);
+          found_in_pending = true;
+        }
         else
           it++;
-      }//TODO print info if the task was not in the pending_allocations.
+      }
+
+      if (!found_in_pending){
+        RCLCPP_ERROR(this->get_logger(), "Task to be finished (task ID: %d, casualty ID: %d, round: %d)", assigned_task.value().task_id, assigned_task.value().casualty_description.id, assigned_task.value().casualty_description.round);
+      }
+
+
       assigned_task = std::nullopt;
 
       if (pending_allocations.empty()){
