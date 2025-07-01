@@ -20,13 +20,12 @@ private:
   // Subscribers.
   // ==================================================
     rclcpp::Subscription<triage_task_allocation_interface::msg::GlobalTaskAllocation>::SharedPtr sub_global_task_allocation;
-    rclcpp::Subscription<triage_task_allocation_interface::msg::CasualtyDescription>::SharedPtr sub_working_on_allocation;
 
   // ==================================================
   // Publishers.
   // ==================================================
   rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr pub_got_new_allocation;
-  rclcpp::Publisher<triage_task_allocation_interface::msg::CasualtyDescription>::SharedPtr pub_working_on_allocation;
+  rclcpp::Publisher<triage_task_allocation_interface::msg::TriageTaskItem>::SharedPtr pub_working_on_allocation;
 
   // ==================================================
   // Services.

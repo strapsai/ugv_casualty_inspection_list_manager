@@ -26,7 +26,7 @@ void AllocationManager::initialize(){
   // Initialize the publishers.
   // ==================================================
   pub_got_new_allocation = create_publisher<std_msgs::msg::Bool>("/got_new_allocation", 10);
-  pub_working_on_allocation = create_publisher<triage_task_allocation_interface::msg::CasualtyDescription>("/working_on_allocation", 10);
+  pub_working_on_allocation = create_publisher<triage_task_allocation_interface::msg::TriageTaskItem>("/working_on_allocation", 10);
 
   // ==================================================
   // Initialize the subscribers.
@@ -179,7 +179,7 @@ int AllocationManager::is_task_finished(const triage_task_allocation_interface::
   }
 
 void AllocationManager::timer_callback_working_on() {
-  if ((!pending_allocations.empty()) && assigned_task.has_value()){
-    pub_working_on_allocation->publish(assigned_task.value().casualty_description);
+  if (assigned_task.has_value()){
+    pub_working_on_allocation->publish(assigned_task.value());
   }
 }
