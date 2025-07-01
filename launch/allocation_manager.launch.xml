@@ -4,6 +4,7 @@
   <arg name="got_new_allocation_topic" default="got_new_allocation"/>
   <arg name="global_task_allocation_topic" default="global_task_allocation_topic"/>
   <arg name="give_allocation_topic" default="give_allocation_topic"/>
+  <arg name="finish_allocation_topic" default="finish_allocation_topic"/>
   <arg name="working_on_allocation_topic" default="working_on_allocation"/>
 
   <group>
@@ -15,6 +16,7 @@
       <remap from="/got_new_allocation" to="$(var got_new_allocation_topic)"/>
       <remap from="/working_on_allocation" to="$(var working_on_allocation_topic)"/>
       <remap from="/give_allocation" to="$(var give_allocation_topic)"/>
+      <remap from="/finish_allocation" to="$(var finish_allocation_topic)"/>
     </node>
   </group>
 </launch>

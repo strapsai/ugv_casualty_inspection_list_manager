@@ -15,6 +15,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};/usr/share/cmake/geographiclib")
 
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 
 find_package(base_node_msgs REQUIRED)
 find_package(geographic_utils REQUIRED)
@@ -39,6 +40,7 @@ ament_target_dependencies(${LIB_NAME}
   PUBLIC
   rclcpp
   std_msgs
+  std_srvs
 
   base_node_msgs
   geographic_utils
@@ -65,6 +67,7 @@ ament_export_targets(export_${LIB_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   rclcpp 
   std_msgs 
+  std_srvs 
 )
 
 add_executable(ugv_casualty_inspection_list_manager_node

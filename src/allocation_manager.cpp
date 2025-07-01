@@ -44,6 +44,13 @@ void AllocationManager::initialize(){
           std::placeholders::_1, //request
           std::placeholders::_2 //response
           ));
+  
+  srv_finish_allocation =
+    create_service<std_srvs::srv::Trigger>("/finish_allocation",
+        std::bind(&AllocationManager::callback_finish_allocation, this,
+          std::placeholders::_1, //request
+          std::placeholders::_2 //response
+          ));
 
 
   timer_working_on_allocation = create_wall_timer(
@@ -55,14 +62,12 @@ void AllocationManager::initialize(){
 }
 
 void AllocationManager::callback_allocations(const triage_task_allocation_interface::msg::GlobalTaskAllocation & msg){
+  pending_allocations.clear();
   for (auto &allocation : msg.task_allocation){
     if (allocation.robot_name == _robot_name_){
-      auto index = got_allocation_for_casualty(allocation.casualty_description.id);
-      if (index > 0){
-        allocations.at(index) = allocation;
-      }
-      else  {
-        allocations.push_back(allocation);
+      auto index = is_task_finished(allocation);
+      if (index < 0){ //not among finished tasks
+        pending_allocations.push_back(allocation);
       }
       std_msgs::msg::Bool msg_out;
       msg_out.data = true;
@@ -74,7 +79,7 @@ void AllocationManager::callback_allocations(const triage_task_allocation_interf
 
 int AllocationManager::got_allocation_for_casualty(unsigned int id){
   int i = 0;
-  for (auto & a : allocations){
+  for (auto & a : pending_allocations){
     if (a.casualty_description.id == id){
       return i;
     }
@@ -83,26 +88,89 @@ int AllocationManager::got_allocation_for_casualty(unsigned int id){
   return -1;
 }
 
+int AllocationManager::is_task_finished(const triage_task_allocation_interface::msg::TriageTaskItem & task){
+  int i = 0;
+  for (auto & t : finished_allocations){
+    if (
+        (t.casualty_description.id = task.casualty_description.id)
+        &&
+        (t.casualty_description.round = task.casualty_description.round)
+       ){
+      return i;
+    }
+    else {
+      i++;
+    }
+  }
+
+  return -1;
+}
+
   void AllocationManager::callback_give_allocation(
       [[ maybe_unused ]] const std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Request> req,
       std::shared_ptr<triage_task_allocation_interface::srv::GiveAllocation::Response> res
       ){
 
-    if (! allocations.empty()){
-      res->task = allocations.front();
-      assigned_task = 0;
-      is_task_assigned = true;
+    if (! pending_allocations.empty()){
+      assigned_task = pending_allocations.front();
+      res->success.data = true;
+      res->task = assigned_task.value();
     }
     else{
       auto emptyres =  triage_task_allocation_interface::msg::TriageTaskItem();
       emptyres.task_id = 666; //signifies failure
       res->task = emptyres;
+      res->success.data = false;
     }
     return;
   }
 
+  void AllocationManager::callback_finish_allocation(
+      [[ maybe_unused ]] const std::shared_ptr<std_srvs::srv::Trigger::Request> req,
+      std::shared_ptr<std_srvs::srv::Trigger::Response> res
+      ){
+    if (assigned_task.has_value()){
+      
+      std::string message;
+      std::stringstream ss;
+      ss << "Finishing task with ID: " <<
+        assigned_task.value().task_id
+        << ", casualty ID: " <<
+        assigned_task.value().casualty_description.id
+        << ", round: " << 
+        assigned_task.value().casualty_description.round;
+
+      res->message = ss.str();
+      finished_allocations.push_back(assigned_task.value());
+      for (auto it = pending_allocations.begin(); it != pending_allocations.end();){
+        if (
+            ((*it).casualty_description.id == assigned_task.value().casualty_description.id)
+            &&
+            ((*it).casualty_description.round == assigned_task.value().casualty_description.round)
+           )
+          it == pending_allocations.erase(it);
+        else
+          it++;
+      }//TODO print info if the task was not in the pending_allocations.
+      assigned_task = std::nullopt;
+
+      if (pending_allocations.empty()){
+        std_msgs::msg::Bool msg_out;
+        msg_out.data = false;
+        pub_got_new_allocation->publish(msg_out);
+      }
+
+    }
+    else {
+      std::string message = "Can't finish a task, as none was assigned!";
+      res->message = message.c_str();
+    RCLCPP_ERROR(this->get_logger(), message.c_str());
+      }
+
+  }
+
 void AllocationManager::timer_callback_working_on() {
-  if ((!allocations.empty()) && is_task_assigned){
-    pub_working_on_allocation->publish(allocations.at(assigned_task).casualty_description);
+  if ((!pending_allocations.empty()) && assigned_task.has_value()){
+    pub_working_on_allocation->publish(assigned_task.value().casualty_description);
   }
 }
