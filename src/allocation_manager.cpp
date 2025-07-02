@@ -113,14 +113,14 @@ int AllocationManager::is_task_finished(const triage_task_allocation_interface::
 
     if (! pending_allocations.empty()){
       assigned_task = pending_allocations.front();
-      res->success.data = true;
+      res->success = true;
       res->task = assigned_task.value();
     }
     else{
       auto emptyres =  triage_task_allocation_interface::msg::TriageTaskItem();
       emptyres.task_id = 666; //signifies failure
       res->task = emptyres;
-      res->success.data = false;
+      res->success = false;
     }
     return;
   }
